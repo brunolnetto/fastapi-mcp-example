@@ -1,20 +1,27 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional
 from datetime import datetime
+from enum import Enum
 
-class TicketStatus(str):
+# Ticket Status Enum
+class TicketStatus(Enum):
     OPEN = "open"
     CLOSED = "closed"
     PENDING = "pending"
 
+# === Request Models ===
 class TicketCreate(BaseModel):
-    title: str
-    description: str
+    title: str = Field(..., min_length=1, max_length=255)
+    description: str = Field(..., min_length=1, max_length=500)
 
 class Ticket(BaseModel):
     id: int
     title: str
     description: str
-    status: Literal["open", "pending", "closed"] = "open"
+    status: TicketStatus = TicketStatus.OPEN
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
+
+# === Request Models ===
+class UpdateStatusRequest(BaseModel):
+    status: TicketStatus = Field(..., example="closed")

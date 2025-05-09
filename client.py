@@ -1,15 +1,13 @@
 import asyncio
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerHTTP
-from src.main import app  # your FastAPI MCP app
 
-# Optional: local dev server, or use externally hosted MCPServerHTTP(url=...)
+# Use url parameter directly
 server = MCPServerHTTP(url="http://localhost:8000/sse")
 
-PROVIDER_NAME="openai"
-MODEL_NAME="gpt-4o-mini"
-
-PYDANTIC_AI_MODEL=f"{PROVIDER_NAME}:{MODEL_NAME}"
+PROVIDER_NAME = "openai"
+MODEL_NAME = "gpt-4o-mini"
+PYDANTIC_AI_MODEL = f"{PROVIDER_NAME}:{MODEL_NAME}"
 
 agent = Agent(PYDANTIC_AI_MODEL, mcp_servers=[server])
 
