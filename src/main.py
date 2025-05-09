@@ -1,6 +1,7 @@
 import asyncio
 from typing import List
 from enum import Enum
+import json
 from pydantic import BaseModel, Field
 
 from fastapi import FastAPI, Depends, HTTPException, Request
@@ -85,6 +86,41 @@ mcp = FastMCP.from_fastapi(
     describe_full_response_schema=True,
 )
 
+async def intercepted_post_handler(scope, receive, send):
+    if scope["type"] != "http":
+        return await transport.handle_post_message(scope, receive, send)
+
+    # Custom receive wrapper to capture the body
+    body = b""
+    more_body = True
+
+    async def wrapped_receive():
+        nonlocal body, more_body
+        message = await receive()
+        if message["type"] == "http.request":
+            body += message.get("body", b"")
+            more_body = message.get("more_body", False)
+        return message
+
+    # Await full body
+    while more_body:
+        await wrapped_receive()
+
+    try:
+        parsed = json.loads(body)
+        print("📨 Audited POST Payload:")
+        print(json.dumps(parsed, indent=2))
+    except Exception as e:
+        print(f"⚠️ Failed to parse JSON body: {e}")
+
+    # Replay receive with stored body
+    async def replay_receive():
+        yield {"type": "http.request", "body": body, "more_body": False}
+
+    # Pipe back to original handler
+    await transport.handle_post_message(scope, replay_receive().__anext__, send)
+
+
 # SSE Transport
 transport = SseServerTransport("/messages/")
 
@@ -96,7 +132,7 @@ async def sse_endpoint(request: Request):
         )
 
 # Mount /messages/ POST handler
-app.mount("/messages/", transport.handle_post_message)
+app.mount("/messages/", intercepted_post_handler)
 
 # === Entrypoint ===
 if __name__ == "__main__":

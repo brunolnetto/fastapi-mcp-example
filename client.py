@@ -9,7 +9,7 @@ PROVIDER_NAME = "openai"
 MODEL_NAME = "gpt-4o-mini"
 PYDANTIC_AI_MODEL = f"{PROVIDER_NAME}:{MODEL_NAME}"
 
-agent = Agent(PYDANTIC_AI_MODEL, mcp_servers=[server])
+agent = Agent(PYDANTIC_AI_MODEL, mcp_servers=[server], verbose=True)
 
 USE_CASES = [
     {

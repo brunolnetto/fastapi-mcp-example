@@ -14,7 +14,7 @@ class TicketCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     description: str = Field(..., min_length=1, max_length=500)
 
-class Ticket(BaseModel):
+class BaseTicket(BaseModel):
     id: int
     title: str
     description: str
@@ -22,6 +22,10 @@ class Ticket(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
+class Ticket(BaseTicket):
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
 # === Request Models ===
-class UpdateStatusRequest(BaseModel):
-    status: TicketStatus = Field(..., example="closed")
+class UpdateStatusRequest(BaseTicket):
+    ...
